@@ -1,0 +1,28 @@
+language: python
+name: dangerous_exec
+message: "Avoid exec() with dynamic input; it can lead to code execution vulnerabilities."
+category: security
+severity: critical
+
+pattern: >
+    (expression_statement
+      (call
+        function: (identifier) @func_name (#eq? @func_name "exec")
+        arguments: (argument_list
+          [(identifier)  ;; Variables like exec(user_input)
+          (call)        ;; Function calls like exec(get_data())
+          (binary_operator) ;; String concatenation like exec("cmd" + user_input)
+          (subscript)   ;; List/dict indexing like exec(config["cmd"])
+          ])
+      )
+    ) @dangerous_exec
+    
+description: |
+  Using exec() with non-constant input can lead to remote code execution (RCE) vulnerabilities.  
+  If the argument to exec() comes from user input or dynamic sources, attackers can inject malicious Python code.  
+  This can result in unauthorized access, data leaks, or system compromise.  
+
+  **Safe Usage:**  
+  - Only use exec() with **constant strings** if absolutely necessary.  
+  - Avoid using exec() with user-controlled data.  
+  - Consider alternatives like `ast.literal_eval()` if evaluating structured input.  
